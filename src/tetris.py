@@ -109,7 +109,10 @@ class Tetris:
             self.active_piece.x -= dx
 
     def rotate_piece(self):
-        if self.state == "gameover":  # Prevent rotation after game over
+        """
+        Rotates the current piece clockwise.
+        """
+        if self.active_piece is None:  # Check if there is an active piece
             return
         prev_rotation = self.active_piece.rotation
         self.active_piece.rotate()
@@ -198,7 +201,7 @@ class Tetris:
                             state[y][x] = 1.0  # Active piece cells set to 1
         return state
 
-    def train_rl():
+    def train_rl(self):
         env = Tetris(20, 10)  # Tetris environment
         cnn = TetrisCNN()  # Neural network
         actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
@@ -225,6 +228,27 @@ class Tetris:
                 elif filled:  # Empty cell below a filled cell
                     gaps += 1
         return gaps
+
+    def step(self, action):
+        """
+        Executes the given action and updates the game state.
+        :param action: Action to take ('LEFT', 'RIGHT', 'DOWN', 'ROTATE').
+        :return: Tuple (next_state, reward, done).
+        """
+        if action == "LEFT":
+            self.move_side(-1)
+        elif action == "RIGHT":
+            self.move_side(1)
+        elif action == "DOWN":
+            self.move_down()
+        elif action == "ROTATE":
+            self.rotate_piece()
+
+        reward = self.calculate_reward()  # Calculate reward based on the current state
+        done = self.state == "gameover"  # Check if the game is over
+        next_state = self.get_board_state()  # Get the updated board state
+
+        return next_state, reward, done
 
     def get_max_height(self):
         """
@@ -308,7 +332,6 @@ def main():
         clock.tick(fps)
 
     pygame.quit()
-
 def main_rl():
     pygame.init()
     size = (400, 600)
@@ -320,23 +343,26 @@ def main_rl():
     # Initialize environment and load the trained model
     env = Tetris(20, 10)
     cnn = TetrisCNN()
-    cnn.load_state_dict(torch.load("tetris_cnn.pth"))
+    cnn.load_state_dict(torch.load("tetris_cnn.pth"))  # Load the saved model
+    cnn.eval()  # Set the model to evaluation mode
     actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
-    agent = DQNAgent(cnn, actions)
+    agent = DQNAgent(cnn, actions, epsilon=0)  # Use greedy policy (no exploration)
 
-    print("Model loaded for testing.")
+    print("Testing the trained model...")
 
     # Test the trained agent
     running = True
     state = env.get_board_state()
+    total_reward = 0
 
     while running:
         screen.fill((230, 230, 230))
 
         # RL Agent selects an action
-        action = agent.select_action(state)
+        action = agent.select_action(state)  # Use the trained agent
         next_state, reward, done = env.step(action)
         state = next_state
+        total_reward += reward
 
         # Render the game
         env.draw_grid(screen)
@@ -345,6 +371,7 @@ def main_rl():
 
         if env.state == "gameover" or done:
             env.display_game_over(screen)
+            print(f"Game Over! Total Reward: {total_reward}")
             running = False
 
         pygame.display.flip()
@@ -352,6 +379,5 @@ def main_rl():
 
     pygame.quit()
 
-
 if __name__ == "__main__":
-    main()
+    main()  # Run the testing function
