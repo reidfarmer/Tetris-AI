@@ -1,5 +1,10 @@
+import numpy as np
 import pygame
 import random
+import torch
+
+from models.cnn import TetrisCNN
+from models.dqn import DQNAgent
 
 # Define colors
 COLORS = [
@@ -176,6 +181,82 @@ class Tetris:
         over_text = font.render("Game Over", True, (255, 0, 0))
         screen.blit(over_text, (50, 300))
 
+    def get_board_state(self):
+        """
+        Returns the current grid as a normalized NumPy array with the active piece included.
+        """
+        state = np.array(self.field, dtype=np.float32)  # Convert to float
+        state /= len(COLORS) - 1  # Normalize values between 0 and 1
+
+        if self.active_piece:
+            for i in range(4):
+                for j in range(4):
+                    if i * 4 + j in self.active_piece.image():
+                        x = j + self.active_piece.x
+                        y = i + self.active_piece.y
+                        if 0 <= x < self.width and 0 <= y < self.height:
+                            state[y][x] = 1.0  # Active piece cells set to 1
+        return state
+
+    def train_rl():
+        env = Tetris(20, 10)  # Tetris environment
+        cnn = TetrisCNN()  # Neural network
+        actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
+        agent = DQNAgent(cnn, actions)
+
+        print("Starting training...")
+        DQNAgent.train(env, agent, num_episodes=500)
+
+        # Save the trained model
+        torch.save(cnn.state_dict(), "tetris_cnn.pth")
+        print("Training complete. Model saved.")
+
+    def count_gaps(self):
+        """
+        Count the number of gaps (empty cells below filled cells in the grid).
+        :return: Total number of gaps in the grid.
+        """
+        gaps = 0
+        for col in range(self.width):
+            filled = False
+            for row in range(self.height):
+                if self.field[row][col] > 0:  # Filled cell
+                    filled = True
+                elif filled:  # Empty cell below a filled cell
+                    gaps += 1
+        return gaps
+
+    def get_max_height(self):
+        """
+        Get the maximum height of the stack in the grid.
+        :return: The maximum height of the stack.
+        """
+        for row in range(self.height):
+            if any(self.field[row]):  # If there's a filled cell in the row
+                return self.height - row
+        return 0  # Grid is empty
+
+    def calculate_reward(self):
+        """
+        Calculate reward based on the current game state.
+        :return: Reward for the current step.
+        """
+        if self.state == "gameover":
+            return -100  # Heavy penalty for losing
+
+        # Positive reward for points earned (e.g., from clearing lines)
+        points_earned = self.score  # Assuming self.score increases per piece placed
+
+        # Penalties for gaps and height
+        num_gaps = self.count_gaps()
+        max_height = self.get_max_height()
+        gap_penalty = num_gaps * 1  # Adjust penalty per gap (e.g., 1 point per gap)
+        height_penalty = max_height * 0.5  # Adjust penalty per height (e.g., 0.5 points per height)
+
+        # Final reward
+        reward = points_earned - gap_penalty - height_penalty
+        return reward
+
 
 def main():
     pygame.init()
@@ -222,6 +303,49 @@ def main():
 
         if game.state == "gameover":
             game.display_game_over(screen)
+
+        pygame.display.flip()
+        clock.tick(fps)
+
+    pygame.quit()
+
+def main_rl():
+    pygame.init()
+    size = (400, 600)
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("RL Tetris")
+    clock = pygame.time.Clock()
+    fps = 30
+
+    # Initialize environment and load the trained model
+    env = Tetris(20, 10)
+    cnn = TetrisCNN()
+    cnn.load_state_dict(torch.load("tetris_cnn.pth"))
+    actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
+    agent = DQNAgent(cnn, actions)
+
+    print("Model loaded for testing.")
+
+    # Test the trained agent
+    running = True
+    state = env.get_board_state()
+
+    while running:
+        screen.fill((230, 230, 230))
+
+        # RL Agent selects an action
+        action = agent.select_action(state)
+        next_state, reward, done = env.step(action)
+        state = next_state
+
+        # Render the game
+        env.draw_grid(screen)
+        env.draw_piece(screen)
+        env.display_stats(screen)
+
+        if env.state == "gameover" or done:
+            env.display_game_over(screen)
+            running = False
 
         pygame.display.flip()
         clock.tick(fps)
