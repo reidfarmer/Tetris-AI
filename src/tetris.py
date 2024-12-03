@@ -60,6 +60,7 @@ class Tetris:
         self.x_offset = 80
         self.y_offset = 50
         self.active_piece = None
+        self.spawn_piece()  # Ensure the first piece is spawned
 
     def spawn_piece(self):
         if self.state == "start":  # Only spawn a piece if the game is not over
@@ -380,4 +381,4 @@ def main_rl():
     pygame.quit()
 
 if __name__ == "__main__":
-    main()  # Run the testing function
+    main_rl()  # Run the testing function

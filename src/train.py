@@ -2,7 +2,7 @@ import torch
 
 from models.cnn import TetrisCNN
 from models.dqn import DQNAgent
-from .tetris import Tetris
+from tetris import Tetris
 
 # Step 1: Initialize the Tetris environment
 env = Tetris(20, 10)  # 20 rows, 10 columns
