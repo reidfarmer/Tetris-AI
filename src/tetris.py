@@ -262,7 +262,7 @@ class Tetris:
 
     def calculate_reward(self):
         if self.state == "gameover":
-            return -1000000
+            return -100
 
         reward = 0
 
