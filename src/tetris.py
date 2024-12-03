@@ -222,7 +222,7 @@ class Tetris:
         DQNAgent.train(env, agent, num_episodes=500)
 
         # Save the trained model
-        torch.save(cnn.state_dict(), "tetris_cnn.pth")
+        torch.save(cnn.state_dict(), "trained_models/tetris_cnn.pth")
         print("Training complete. Model saved.")
 
     def count_gaps(self):
@@ -348,7 +348,7 @@ def main_rl():
     # Initialize environment and load the trained model
     env = Tetris(20, 10)
     cnn = TetrisCNN()
-    cnn.load_state_dict(torch.load("tetris_cnn.pth"))  # Load the saved model
+    cnn.load_state_dict(torch.load("trained_models/tetris_cnn.pth"))  # Load the saved model
     cnn.eval()  # Set the model to evaluation mode
     actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
     agent = DQNAgent(cnn, actions, epsilon=0)  # Use greedy policy (no exploration)

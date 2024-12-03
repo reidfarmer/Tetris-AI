@@ -6,7 +6,7 @@ from tetris import Tetris
 
 # Step 1: Load the trained CNN model
 cnn = TetrisCNN()
-cnn.load_state_dict(torch.load("tetris_cnn.pth"))  # Load saved weights
+cnn.load_state_dict(torch.load("trained_models/tetris_cnn.pth"))  # Load saved weights
 cnn.eval()  # Set to evaluation mode
 
 # Step 2: Initialize the Tetris environment
@@ -30,12 +30,17 @@ total_reward = 0
 running = True
 
 while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
     screen.fill((230, 230, 230))
 
     # RL Agent selects an action
-    # RL Agent selects an action
-    action = agent.select_action(state)
+    action = agent.select_action(state)  # Get the action (e.g., "LEFT", "RIGHT", etc.)
     print(f"Selected Action: {action}")  # Debug log
+
+    # Perform the action in the environment
     next_state, reward, done = env.step(action)
     print(f"Reward: {reward}, Done: {done}")  # Debug log
 
@@ -50,6 +55,7 @@ while running:
     if env.state == "gameover" or done:
         env.display_game_over(screen)
         print(f"Game Over! Total Reward: {total_reward}")
+        print(f"Final Score: {env.score}")  # Display final score
         running = False
 
     pygame.display.flip()

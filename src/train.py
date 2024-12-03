@@ -16,4 +16,4 @@ agent = DQNAgent(cnn, actions)
 DQNAgent.train(env, agent, num_episodes=500)  # Train for 500 episodes
 
 # Step 4: Save the trained model
-torch.save(cnn.state_dict(), "tetris_cnn.pth")
+torch.save(cnn.state_dict(), "trained_models/tetris_cnn.pth")
