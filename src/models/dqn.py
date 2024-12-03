@@ -1,4 +1,5 @@
 import numpy as np
+import pygame
 import torch
 import torch.nn as nn
 import random
@@ -45,21 +46,40 @@ class DQNAgent:
 
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
-    def train(env, agent, num_episodes=1000):
+    def train(env, agent, num_episodes=1000, visualize=True):
         for episode in range(num_episodes):
             state = env.get_board_state()
             done = False
             total_reward = 0
 
+            # Initialize pygame if visualizing
+            if visualize:
+                pygame.init()
+                size = (400, 600)
+                screen = pygame.display.set_mode(size)
+                pygame.display.set_caption("Tetris Training")
+
             while not done:
+                if visualize:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            return
+
+                    screen.fill((230, 230, 230))
+                    env.draw_grid(screen)
+                    env.draw_piece(screen)
+                    pygame.display.flip()
+
                 action = agent.select_action(state)
                 next_state, reward, done = env.step(action)
                 agent.replay_buffer.append((state, agent.actions.index(action), reward, next_state, done))
                 state = next_state
                 total_reward += reward
 
-                # Train on experience
                 agent.train_step()
 
             print(f"Episode {episode + 1}/{num_episodes}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
-            torch.save(agent.cnn.state_dict(), "tetris_cnn.pth")
+
+            if visualize:
+                pygame.quit()

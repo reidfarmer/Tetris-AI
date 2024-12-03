@@ -231,24 +231,23 @@ class Tetris:
         return gaps
 
     def step(self, action):
-        """
-        Executes the given action and updates the game state.
-        :param action: Action to take ('LEFT', 'RIGHT', 'DOWN', 'ROTATE').
-        :return: Tuple (next_state, reward, done).
-        """
+        # Apply the agent's chosen action
         if action == "LEFT":
             self.move_side(-1)
         elif action == "RIGHT":
             self.move_side(1)
         elif action == "DOWN":
-            self.move_down()
+            self.move_down()  # Fast drop
         elif action == "ROTATE":
             self.rotate_piece()
 
-        reward = self.calculate_reward()  # Calculate reward based on the current state
-        done = self.state == "gameover"  # Check if the game is over
-        next_state = self.get_board_state()  # Get the updated board state
+        # Simulate natural downward movement
+        self.move_down()
 
+        # Calculate reward and check game over
+        reward = self.calculate_reward()
+        done = self.state == "gameover"
+        next_state = self.get_board_state()
         return next_state, reward, done
 
     def get_max_height(self):
@@ -262,26 +261,21 @@ class Tetris:
         return 0  # Grid is empty
 
     def calculate_reward(self):
-        """
-        Calculate reward based on the current game state.
-        :return: Reward for the current step.
-        """
         if self.state == "gameover":
-            return -100  # Heavy penalty for losing
+            return -1000000
 
-        # Positive reward for points earned (e.g., from clearing lines)
-        points_earned = self.score  # Assuming self.score increases per piece placed
+        reward = 0
 
-        # Penalties for gaps and height
-        num_gaps = self.count_gaps()
-        max_height = self.get_max_height()
-        gap_penalty = num_gaps * 1  # Adjust penalty per gap (e.g., 1 point per gap)
-        height_penalty = max_height * 0.5  # Adjust penalty per height (e.g., 0.5 points per height)
+        # Reward for placing a piece without gaps
+        reward += 1  # Small reward for every piece placed
+        if self.lines > 0:
+            reward += self.lines * 10  # Bonus for clearing lines
 
-        # Final reward
-        reward = points_earned - gap_penalty - height_penalty
+        # Penalties
+        reward -= self.count_gaps() * 1  # Penalize gaps
+        reward -= self.get_max_height() * 0.5  # Penalize height
+
         return reward
-
 
 def main():
     pygame.init()
