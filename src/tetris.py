@@ -62,6 +62,16 @@ class Tetris:
         self.active_piece = None
         self.spawn_piece()  # Ensure the first piece is spawned
 
+    def reset(self):
+        """Reset the game to the initial state."""
+        self.level = 2
+        self.score = 0
+        self.lines = 0
+        self.state = "start"
+        self.field = [[0 for _ in range(self.width)] for _ in range(self.height)]
+        self.active_piece = None
+        self.spawn_piece()
+        self.timer = 0
     def spawn_piece(self):
         if self.state == "start":  # Only spawn a piece if the game is not over
             self.active_piece = Block(3, 0)

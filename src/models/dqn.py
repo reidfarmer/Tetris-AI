@@ -46,13 +46,14 @@ class DQNAgent:
 
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
-    def train(env, agent, num_episodes=1000, visualize=True):
+    def train(env, agent, num_episodes=500, visualize=True):
         for episode in range(num_episodes):
+            env.reset()  # Reset the environment for a new game
             state = env.get_board_state()
             done = False
             total_reward = 0
 
-            # Initialize pygame if visualizing
+            # Visualization setup
             if visualize:
                 pygame.init()
                 size = (400, 600)
@@ -83,3 +84,4 @@ class DQNAgent:
 
             if visualize:
                 pygame.quit()
+
