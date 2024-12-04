@@ -377,6 +377,7 @@ def main_rl():
         if env.state == "gameover" or done:
             env.display_game_over(screen)
             print(f"Game Over! Total Reward: {total_reward}")
+            print(f"Score:  {env.score}")
             running = False
 
         pygame.display.flip()
