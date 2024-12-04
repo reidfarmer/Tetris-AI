@@ -80,7 +80,7 @@ class DQNAgent:
 
                 agent.train_step()
 
-            print(f"Episode {episode + 1}/{num_episodes}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
+            print(f"Episode {episode + 1}/{num_episodes}, Total Reward: {total_reward}, Final Score: {env.score}, Epsilon: {agent.epsilon:.2f}")
 
             if visualize:
                 pygame.quit()

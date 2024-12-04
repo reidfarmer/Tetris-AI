@@ -13,7 +13,7 @@ actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]  # Possible actions
 agent = DQNAgent(cnn, actions)
 
 # Step 3: Train the agent
-DQNAgent.train(env, agent, num_episodes=500)  # Train for 500 episodes
+DQNAgent.train(env, agent, num_episodes=50)  # Train for 500 episodes
 
 # Step 4: Save the trained model
 torch.save(cnn.state_dict(), "trained_models/tetris_cnn.pth")
