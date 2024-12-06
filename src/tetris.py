@@ -165,7 +165,7 @@ class Tetris:
                 )
 
     def draw_piece(self, screen):
-        if self.active_piece and self.state == "start":  # Only draw the piece if the game is not over
+        if self.active_piece and self.state == "start": 
             for i in range(4):
                 for j in range(4):
                     if i * 4 + j in self.active_piece.image():
@@ -211,20 +211,6 @@ class Tetris:
                         if 0 <= x < self.width and 0 <= y < self.height:
                             state[y][x] = 1.0  # Active piece cells set to 1
         return state
-
-    def train_rl(self):
-        env = Tetris(20, 10)  # Tetris environment
-        cnn = TetrisCNN()  # Neural network
-        actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
-        agent = DQNAgent(cnn, actions)
-
-        print("Starting training...")
-        DQNAgent.train(env, agent, num_episodes=500)
-
-        # Save the trained model
-        torch.save(cnn.state_dict(), "trained_models/tetris_cnn.pth")
-        print("Training complete. Model saved.")
-
     def count_gaps(self):
         """
         Count the number of gaps (empty cells below filled cells in the grid).
@@ -276,16 +262,33 @@ class Tetris:
 
         reward = 0
 
-        # Reward for placing a piece without gaps
-        reward += 1  # Small reward for every piece placed
-        if self.lines > 0:
-            reward += self.lines * 10  # Bonus for clearing lines
+        # Reward for placing a piece and clearing lines
+        piece_reward = 5  # Small reward for each piece placed
+        line_reward = self.lines * 100  # Larger reward for clearing lines
+        reward += (piece_reward + line_reward)
 
-        # Penalties
-        reward -= self.count_gaps() * 1  # Penalize gaps
-        reward -= self.get_max_height() * 0.5  # Penalize height
+        # Penalties for inefficiencies
+        gaps_penalty = self.count_gaps() * 0.1
+        height_penalty = self.get_max_height() * 0.2
+
+        # Calculate column heights variance penalty
+        column_heights = [self.height - next((row for row in range(self.height) 
+                        if self.field[row][col] != 0), self.height)
+                        for col in range(self.width)]
+        variance_penalty = np.var(column_heights) * 0.05
+
+        reward -= gaps_penalty + height_penalty + variance_penalty
+
+        # Bonus for maintaining efficiency (low gaps)
+        reward += max(0, 10 - self.count_gaps())  # Bonus for fewer gaps
+
+        # Debugging the reward calculation
+        #print(f"Piece Reward: {piece_reward}, Line Reward: {line_reward}, "
+            #f"Gaps Penalty: {gaps_penalty}, Height Penalty: {height_penalty}, "
+            #f"Variance Penalty: {variance_penalty}, Total Reward: {reward}")
 
         return reward
+
 
 def main():
     pygame.init()
@@ -337,6 +340,8 @@ def main():
         clock.tick(fps)
 
     pygame.quit()
+
+
 def main_rl():
     pygame.init()
     size = (400, 600)
