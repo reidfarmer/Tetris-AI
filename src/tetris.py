@@ -211,20 +211,6 @@ class Tetris:
                         if 0 <= x < self.width and 0 <= y < self.height:
                             state[y][x] = 1.0  # Active piece cells set to 1
         return state
-
-    def train_rl(self):
-        env = Tetris(20, 10)  # Tetris environment
-        cnn = TetrisCNN()  # Neural network
-        actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
-        agent = DQNAgent(cnn, actions)
-
-        print("Starting training...")
-        DQNAgent.train(env, agent, num_episodes=500)
-
-        # Save the trained model
-        torch.save(cnn.state_dict(), "trained_models/tetris_cnn.pth")
-        print("Training complete. Model saved.")
-
     def count_gaps(self):
         """
         Count the number of gaps (empty cells below filled cells in the grid).
@@ -277,13 +263,13 @@ class Tetris:
         reward = 0
 
         # Reward for placing a piece and clearing lines
-        piece_reward = 1  # Small reward for each piece placed
-        line_reward = self.lines * 30  # Larger reward for clearing lines
-        reward += piece_reward + line_reward
+        piece_reward = 5  # Small reward for each piece placed
+        line_reward = self.lines * 100  # Larger reward for clearing lines
+        reward += (piece_reward + line_reward)
 
         # Penalties for inefficiencies
-        gaps_penalty = self.count_gaps() * 0.3
-        height_penalty = self.get_max_height() ** 0.2
+        gaps_penalty = self.count_gaps() * 0.1
+        height_penalty = self.get_max_height() * 0.2
 
         # Calculate column heights variance penalty
         column_heights = [self.height - next((row for row in range(self.height) 
@@ -297,13 +283,11 @@ class Tetris:
         reward += max(0, 10 - self.count_gaps())  # Bonus for fewer gaps
 
         # Debugging the reward calculation
-        print(f"Piece Reward: {piece_reward}, Line Reward: {line_reward}, "
-            f"Gaps Penalty: {gaps_penalty}, Height Penalty: {height_penalty}, "
-            f"Variance Penalty: {variance_penalty}, Total Reward: {reward}")
+        #print(f"Piece Reward: {piece_reward}, Line Reward: {line_reward}, "
+            #f"Gaps Penalty: {gaps_penalty}, Height Penalty: {height_penalty}, "
+            #f"Variance Penalty: {variance_penalty}, Total Reward: {reward}")
 
         return reward
-
-
 
 
 def main():
@@ -356,6 +340,8 @@ def main():
         clock.tick(fps)
 
     pygame.quit()
+
+
 def main_rl():
     pygame.init()
     size = (400, 600)

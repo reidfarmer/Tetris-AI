@@ -1,10 +1,12 @@
+from collections import deque
+
 import numpy as np
 import pygame
 import torch
 import torch.nn as nn
 import random
 class DQNAgent:
-    def __init__(self, cnn, actions, lr=0.001, gamma=0.99, epsilon=1.0, epsilon_decay=0.995, min_epsilon=0.1):
+    def __init__(self, cnn, actions, lr=1e-3, gamma=0.99, epsilon=1.0, epsilon_decay=0.995, min_epsilon=0.01):
         self.cnn = cnn
         self.actions = actions
         self.optimizer = torch.optim.Adam(self.cnn.parameters(), lr=lr)
@@ -12,7 +14,7 @@ class DQNAgent:
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.min_epsilon = min_epsilon
-        self.replay_buffer = []
+        self.replay_buffer = deque(maxlen=10000)
         self.batch_size = 64
 
     def select_action(self, state):
@@ -39,14 +41,14 @@ class DQNAgent:
         next_q_values = self.cnn(next_states).max(1)[0]
         targets = rewards + self.gamma * next_q_values * (1 - dones)
 
-        loss = nn.MSELoss()(q_values, targets)
+        loss = nn.SmoothL1Loss()(q_values, targets)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
+        #self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)  # Update epsilon
 
-    def train(env, agent, num_episodes=500, visualize=True):
+    def train(env, agent, num_episodes=2000, visualize=False):
         for episode in range(num_episodes):
             env.reset()  # Reset the environment for a new game
             state = env.get_board_state()
@@ -79,7 +81,7 @@ class DQNAgent:
                 total_reward += reward
 
                 agent.train_step()
-
+            agent.epsilon = max(agent.min_epsilon, agent.epsilon * 0.995)
             print(f"Episode {episode + 1}/{num_episodes}, Total Reward: {total_reward}, Final Score: {env.score}, Epsilon: {agent.epsilon:.2f}")
 
             if visualize:

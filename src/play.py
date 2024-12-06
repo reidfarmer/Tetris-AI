@@ -6,7 +6,7 @@ from tetris import Tetris
 
 # Step 1: Load the trained CNN model
 cnn = TetrisCNN()
-cnn.load_state_dict(torch.load("trained_models/tetris_cnn.pth"))  # Load saved weights
+cnn.load_state_dict(torch.load("trained_models/tetris_cnn2.pth"))  # Load saved weights
 cnn.eval()  # Set to evaluation mode
 
 # Step 2: Initialize the Tetris environment
