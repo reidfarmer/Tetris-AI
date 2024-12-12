@@ -4,19 +4,19 @@ from models.cnn import TetrisCNN
 from models.dqn import DQNAgent
 from tetris import Tetris
 
-# Step 1: Load the trained CNN model
+# load model
 cnn = TetrisCNN()
 cnn.load_state_dict(torch.load("trained_models/tetris_cnn2.pth"))
 cnn.eval()
 
-# Step 2: Initialize the Tetris environment
+# intialize env
 env = Tetris(20, 10)
 actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
 
-# Step 3: Initialize the agent
+# initialize agent
 agent = DQNAgent(cnn, actions, epsilon=0)
 
-# Step 4: Let the model play the game
+# model play game
 pygame.init()
 size = (400, 600)
 screen = pygame.display.set_mode(size)
@@ -36,18 +36,15 @@ while running:
 
     screen.fill((230, 230, 230))
 
-    # RL Agent selects an action
+
     action = agent.select_action(state)
     print(f"Selected Action: {action}")
-
-    # Perform the action in the environment
     next_state, reward, done = env.step(action)
     print(f"Reward: {reward}, Done: {done}")
 
     state = next_state
     total_reward += reward
 
-    # Render the game
     env.draw_grid(screen)
     env.draw_piece(screen)
     env.display_stats(screen)
