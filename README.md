@@ -7,7 +7,7 @@ This project implements an AI agent to play the classic game of Tetris using Dee
 # Use our code as follows:
 
 Train the AI using the Deep Q-Learning algorithm by running:
-'''python train.py'''
+```python train.py``` 
 
 Once the model is trained, you can watch the AI in action by running:
-'''python play.py'''
+```python play.py``` 
