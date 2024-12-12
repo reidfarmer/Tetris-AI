@@ -19,11 +19,11 @@ class DQNAgent:
 
     def select_action(self, state):
         if random.random() < self.epsilon:
-            return random.choice(self.actions)  # Exploration
+            return random.choice(self.actions)  # exploration
         else:
-            state = torch.tensor(state, dtype=torch.float32).unsqueeze(0).unsqueeze(0)  # Add batch and channel dims
+            state = torch.tensor(state, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             q_values = self.cnn(state)
-            return self.actions[torch.argmax(q_values).item()]  # Exploitation
+            return self.actions[torch.argmax(q_values).item()]  # exploitation
 
     def train_step(self):
         if len(self.replay_buffer) < self.batch_size:
@@ -31,6 +31,7 @@ class DQNAgent:
         batch = random.sample(self.replay_buffer, self.batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
 
+        # Chat gpt used here to help us debug, and help us with logic
         states = torch.tensor(np.array(states), dtype=torch.float32).unsqueeze(1)
         actions = torch.tensor(actions, dtype=torch.int64).unsqueeze(1)
         rewards = torch.tensor(rewards, dtype=torch.float32)
