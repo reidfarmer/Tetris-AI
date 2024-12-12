@@ -6,16 +6,16 @@ import torch
 from models.cnn import TetrisCNN
 from models.dqn import DQNAgent
 
-# Define colors
+# colors
 COLORS = [
-    (169, 169, 169),  # Gray background for the grid
-    (102, 204, 255),  # Cyan
-    (255, 178, 102),  # Orange
-    (255, 255, 102),  # Yellow
-    (178, 102, 255),  # Purple
-    (102, 255, 102),  # Green
-    (255, 102, 102),  # Red
-    (51, 153, 255),   # Blue
+    (169, 169, 169),  
+    (102, 204, 255), 
+    (255, 178, 102),  
+    (255, 255, 102),  
+    (178, 102, 255), 
+    (102, 255, 102), 
+    (255, 102, 102),  
+    (51, 153, 255),  
 ]
 
 
