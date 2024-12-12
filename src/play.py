@@ -6,15 +6,15 @@ from tetris import Tetris
 
 # Step 1: Load the trained CNN model
 cnn = TetrisCNN()
-cnn.load_state_dict(torch.load("trained_models/tetris_cnn2.pth"))  # Load saved weights
-cnn.eval()  # Set to evaluation mode
+cnn.load_state_dict(torch.load("trained_models/tetris_cnn2.pth"))
+cnn.eval()
 
 # Step 2: Initialize the Tetris environment
 env = Tetris(20, 10)
 actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
 
 # Step 3: Initialize the agent
-agent = DQNAgent(cnn, actions, epsilon=0)  # Use greedy policy for testing
+agent = DQNAgent(cnn, actions, epsilon=0)
 
 # Step 4: Let the model play the game
 pygame.init()
@@ -37,12 +37,12 @@ while running:
     screen.fill((230, 230, 230))
 
     # RL Agent selects an action
-    action = agent.select_action(state)  # Get the action (e.g., "LEFT", "RIGHT", etc.)
-    print(f"Selected Action: {action}")  # Debug log
+    action = agent.select_action(state)
+    print(f"Selected Action: {action}")
 
     # Perform the action in the environment
     next_state, reward, done = env.step(action)
-    print(f"Reward: {reward}, Done: {done}")  # Debug log
+    print(f"Reward: {reward}, Done: {done}")
 
     state = next_state
     total_reward += reward
@@ -55,7 +55,7 @@ while running:
     if env.state == "gameover" or done:
         env.display_game_over(screen)
         print(f"Game Over! Total Reward: {total_reward}")
-        print(f"Final Score: {env.score}")  # Display final score
+        print(f"Final Score: {env.score}")  # final score
         running = False
 
     pygame.display.flip()

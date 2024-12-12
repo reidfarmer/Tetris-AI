@@ -8,8 +8,8 @@ from tetris import Tetris
 env = Tetris(20, 10)  # 20 rows, 10 columns
 
 # Step 2: Initialize the CNN and DQN agent
-cnn = TetrisCNN()  # Neural network model
-actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]  # Possible actions
+cnn = TetrisCNN()
+actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"] 
 agent = DQNAgent(cnn, actions, epsilon=1.0, epsilon_decay=0.99, min_epsilon=0.01)
 
 # Step 3: Train the agent
