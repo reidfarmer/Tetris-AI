@@ -6,16 +6,16 @@ import torch
 from models.cnn import TetrisCNN
 from models.dqn import DQNAgent
 
-# colors
+# Define colors
 COLORS = [
-    (169, 169, 169),  
-    (102, 204, 255), 
-    (255, 178, 102),  
-    (255, 255, 102),  
-    (178, 102, 255), 
-    (102, 255, 102), 
-    (255, 102, 102),  
-    (51, 153, 255),  
+    (169, 169, 169),  # Gray background for the grid
+    (102, 204, 255),  # Cyan
+    (255, 178, 102),  # Orange
+    (255, 255, 102),  # Yellow
+    (178, 102, 255),  # Purple
+    (102, 255, 102),  # Green
+    (255, 102, 102),  # Red
+    (51, 153, 255),   # Blue
 ]
 
 
@@ -24,20 +24,20 @@ class Block:
     y = 0
 
     SHAPES = [
-        [[1, 5, 9, 13], [4, 5, 6, 7]],
-        [[4, 5, 9, 10], [2, 6, 5, 9]],
-        [[6, 7, 9, 10], [1, 5, 6, 10]],
-        [[1, 2, 5, 9], [0, 4, 5, 6], [1, 5, 9, 8], [4, 5, 6, 10]],
-        [[1, 2, 6, 10], [5, 6, 7, 9], [2, 6, 10, 11], [3, 5, 6, 7]],
-        [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],
-        [[1, 2, 5, 6]],
+        [[1, 5, 9, 13], [4, 5, 6, 7]],  # Line
+        [[4, 5, 9, 10], [2, 6, 5, 9]],  # Z
+        [[6, 7, 9, 10], [1, 5, 6, 10]],  # S
+        [[1, 2, 5, 9], [0, 4, 5, 6], [1, 5, 9, 8], [4, 5, 6, 10]],  # L
+        [[1, 2, 6, 10], [5, 6, 7, 9], [2, 6, 10, 11], [3, 5, 6, 7]],  # Reverse L
+        [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],  # T
+        [[1, 2, 5, 6]],  # Square
     ]
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.type = random.randint(0, len(self.SHAPES) - 1)
-        self.color = self.type + 1
+        self.color = self.type + 1  # Color is directly tied to shape index
         self.rotation = 0
 
     def image(self):
@@ -60,9 +60,10 @@ class Tetris:
         self.x_offset = 80
         self.y_offset = 50
         self.active_piece = None
-        self.spawn_piece()
+        self.spawn_piece()  # Ensure the first piece is spawned
 
     def reset(self):
+        """Reset the game to the initial state."""
         self.level = 2
         self.score = 0
         self.lines = 0
@@ -71,8 +72,9 @@ class Tetris:
         self.active_piece = None
         self.spawn_piece()
         self.timer = 0
+
     def spawn_piece(self):
-        if self.state == "start":
+        if self.state == "start":  # Only spawn a piece if the game is not over
             self.active_piece = Block(3, 0)
 
     def check_collision(self):
@@ -89,22 +91,22 @@ class Tetris:
         return False
 
     def freeze_piece(self):
-        if self.state == "gameover":
+        if self.state == "gameover":  # Do not freeze pieces if the game is over
             return
-        block_count = 0
+        block_count = 0  # Count the number of blocks in the active piece
         for i in range(4):
             for j in range(4):
                 if i * 4 + j in self.active_piece.image():
                     self.field[i + self.active_piece.y][j + self.active_piece.x] = self.active_piece.color
                     block_count += 1
-        self.score += block_count
+        self.score += block_count  # Increment score by the number of blocks placed
         self.clear_lines()
         self.spawn_piece()
         if self.check_collision():
             self.state = "gameover"
 
     def move_down(self):
-        if self.state == "gameover":
+        if self.state == "gameover":  # Prevent movement after game over
             return
         self.active_piece.y += 1
         if self.check_collision():
@@ -112,14 +114,17 @@ class Tetris:
             self.freeze_piece()
 
     def move_side(self, dx):
-        if self.state == "gameover":
+        if self.state == "gameover":  # Prevent movement after game over
             return
         self.active_piece.x += dx
         if self.check_collision():
             self.active_piece.x -= dx
 
     def rotate_piece(self):
-        if self.active_piece is None:
+        """
+        Rotates the current piece clockwise.
+        """
+        if self.active_piece is None:  # Check if there is an active piece
             return
         prev_rotation = self.active_piece.rotation
         self.active_piece.rotate()
@@ -128,12 +133,12 @@ class Tetris:
 
     def clear_lines(self):
         full_lines = 0
-        for i in range(self.height - 1, -1, -1):
-            if 0 not in self.field[i]:
+        for i in range(self.height - 1, -1, -1):  # Iterate from bottom to top
+            if 0 not in self.field[i]:  # If the row is full
                 del self.field[i]
-                self.field.insert(0, [0 for _ in range(self.width)])
+                self.field.insert(0, [0 for _ in range(self.width)])  # Add a new empty row at the top
                 full_lines += 1
-        self.lines += full_lines
+        self.lines += full_lines  # Increment the total number of lines cleared
 
     def draw_grid(self, screen):
         for i in range(self.height):
@@ -192,8 +197,11 @@ class Tetris:
         screen.blit(over_text, (50, 300))
 
     def get_board_state(self):
-        state = np.array(self.field, dtype=np.float32)
-        state /= len(COLORS) - 1
+        """
+        Returns the current grid as a normalized NumPy array with the active piece included.
+        """
+        state = np.array(self.field, dtype=np.float32)  # Convert to float
+        state /= len(COLORS) - 1  # Normalize values between 0 and 1
 
         if self.active_piece:
             for i in range(4):
@@ -202,20 +210,26 @@ class Tetris:
                         x = j + self.active_piece.x
                         y = i + self.active_piece.y
                         if 0 <= x < self.width and 0 <= y < self.height:
-                            state[y][x] = 1.0
+                            state[y][x] = 1.0  # Active piece cells set to 1
         return state
+
     def count_gaps(self):
+        """
+        Count the number of gaps (empty cells below filled cells in the grid).
+        :return: Total number of gaps in the grid.
+        """
         gaps = 0
         for col in range(self.width):
             filled = False
             for row in range(self.height):
-                if self.field[row][col] > 0:
+                if self.field[row][col] > 0:  # Filled cell
                     filled = True
-                elif filled:
+                elif filled:  # Empty cell below a filled cell
                     gaps += 1
         return gaps
 
     def step(self, action):
+        # Apply the agent's chosen action
         if action == "LEFT":
             self.move_side(-1)
         elif action == "RIGHT":
@@ -225,20 +239,24 @@ class Tetris:
         elif action == "ROTATE":
             self.rotate_piece()
 
-      # keep moving down naturally
+        # Simulate natural downward movement
         self.move_down()
 
-        # reward and check game over
+        # Calculate reward and check game over
         reward = self.calculate_reward()
         done = self.state == "gameover"
         next_state = self.get_board_state()
         return next_state, reward, done
 
     def get_max_height(self):
+        """
+        Get the maximum height of the stack in the grid.
+        :return: The maximum height of the stack.
+        """
         for row in range(self.height):
-            if any(self.field[row]):
+            if any(self.field[row]):  # If there's a filled cell in the row
                 return self.height - row
-        return 0  # grid is empty
+        return 0  # Grid is empty
 
     def calculate_reward(self):
         if self.state == "gameover":
@@ -246,15 +264,16 @@ class Tetris:
 
         reward = 0
 
-
-        piece_reward = 5
-        line_reward = self.lines * 100  # large reward for clearing lines
+        # Reward for placing a piece and clearing lines
+        piece_reward = 5  # Small reward for each piece placed
+        line_reward = self.lines * 100  # Larger reward for clearing lines
         reward += (piece_reward + line_reward)
 
-
+        # Penalties for inefficiencies
         gaps_penalty = self.count_gaps() * 0.1
         height_penalty = self.get_max_height() * 0.2
 
+        # Calculate column heights variance penalty
         column_heights = [self.height - next((row for row in range(self.height) 
                         if self.field[row][col] != 0), self.height)
                         for col in range(self.width)]
@@ -262,12 +281,8 @@ class Tetris:
 
         reward -= gaps_penalty + height_penalty + variance_penalty
 
-        reward += max(0, 10 - self.count_gaps())
-
-        # Debugging the reward calculation
-        #print(f"Piece Reward: {piece_reward}, Line Reward: {line_reward}, "
-            #f"Gaps Penalty: {gaps_penalty}, Height Penalty: {height_penalty}, "
-            #f"Variance Penalty: {variance_penalty}, Total Reward: {reward}")
+        # Bonus for maintaining efficiency (low gaps)
+        reward += max(0, 10 - self.count_gaps())  # Bonus for fewer gaps
 
         return reward
 
@@ -323,7 +338,7 @@ def main():
 
     pygame.quit()
 
-# Chat gpt used to help with game logic
+
 def main_rl():
     pygame.init()
     size = (400, 600)
@@ -332,16 +347,17 @@ def main_rl():
     clock = pygame.time.Clock()
     fps = 30
 
+    # Initialize environment and load the trained model
     env = Tetris(20, 10)
     cnn = TetrisCNN()
-    cnn.load_state_dict(torch.load("trained_models/tetris_cnn.pth"))
-    cnn.eval()
+    cnn.load_state_dict(torch.load("trained_models/tetris_cnn.pth"))  # Load the saved model
+    cnn.eval()  # Set the model to evaluation mode
     actions = ["LEFT", "RIGHT", "DOWN", "ROTATE"]
-    agent = DQNAgent(cnn, actions, epsilon=0)
+    agent = DQNAgent(cnn, actions, epsilon=0)  # Use greedy policy (no exploration)
 
     print("Testing the trained model...")
 
-    # test the trained agent
+    # Test the trained agent
     running = True
     state = env.get_board_state()
     total_reward = 0
@@ -350,7 +366,7 @@ def main_rl():
         screen.fill((230, 230, 230))
 
         # RL Agent selects an action
-        action = agent.select_action(state)
+        action = agent.select_action(state)  # Use the trained agent
         next_state, reward, done = env.step(action)
         state = next_state
         total_reward += reward
@@ -371,5 +387,6 @@ def main_rl():
 
     pygame.quit()
 
+
 if __name__ == "__main__":
-    main_rl()
+    main_rl()  # Run the testing function
